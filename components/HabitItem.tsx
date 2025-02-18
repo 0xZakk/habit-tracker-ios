@@ -1,6 +1,7 @@
 import { View, StyleSheet, Pressable } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { Habit } from '@/types/habit';
+import { habitService } from '@/src/lib/habitService';
 
 interface HabitItemProps {
   habit: Habit;
@@ -9,13 +10,20 @@ interface HabitItemProps {
 
 export function HabitItem({ habit, onToggle }: HabitItemProps) {
   const isCompletedToday = habit.completedDates.some(
-    date => date.toDateString() === new Date().toDateString()
+    (date: Date) => date.toDateString() === new Date().toDateString()
   );
 
   const streak = calculateStreak(habit.completedDates);
 
+  const handleToggle = async () => {
+    const success = await habitService.toggleHabitCompletion(habit.id, new Date());
+    if (success) {
+      onToggle();
+    }
+  };
+
   return (
-    <Pressable onPress={onToggle} style={styles.container}>
+    <Pressable onPress={handleToggle} style={styles.container}>
       <View style={styles.habitInfo}>
         <ThemedText type="defaultSemiBold">{habit.name}</ThemedText>
         <ThemedText>🔥 {streak} day streak</ThemedText>

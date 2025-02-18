@@ -1,0 +1,76 @@
+---
+description: Task Management Rules
+globs: project/tasks/*.md
+---
+# Task Management Rules
+
+Rules for managing project tasks and their status.
+
+<rule>
+name: task_management
+description: Standards for managing task files and their status
+filters:
+  # Match task markdown files
+  - type: file_extension
+    pattern: "\\.md$"
+  # Match files in tasks directory
+  - type: path
+    pattern: "^project/tasks/"
+  # Match task file format
+  - type: content
+    pattern: "(?s)---\\s*Name:.*?Status:.*?---"
+
+actions:
+  - type: reject
+    conditions:
+      - pattern: "^(?!project/tasks/.*\\.md$)"
+        message: "Task files must be placed in the project/tasks directory"
+      - pattern: "Status:\\s*(?!To Do|Doing|Done)"
+        message: "Task status must be one of: To Do, Doing, Done"
+
+  - type: suggest
+    message: |
+      When managing tasks:
+
+      1. Only one task should be in progress at a time
+      2. Task files must be included in every commit that relates to the task
+      3. Status management:
+         - Mark as "Doing" when starting a task
+         - Mark as "Done" when completing a task
+         - Otherwise, keep as "To Do"
+      4. Task file format:
+         ```md
+         ---
+         Name: Task name
+         Status: [To Do|Doing|Done]
+         ---
+
+         ## Description
+
+         Task description here
+         ```
+
+examples:
+  - input: |
+      # Bad: Incorrect location or format
+      tasks/my-task.md
+      project/my-task.md
+      
+      # Bad: Invalid status
+      ---
+      Name: My Task
+      Status: In Progress
+      ---
+      
+      # Good: Correct location and format
+      project/tasks/my-task.md:
+      ---
+      Name: My Task
+      Status: Doing
+      ---
+    output: "Correctly formatted and placed task file"
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

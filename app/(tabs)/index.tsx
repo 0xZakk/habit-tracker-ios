@@ -1,74 +1,123 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import { View, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { HabitItem } from '@/components/HabitItem';
+import { useState, useEffect, useCallback } from 'react';
+import { Link } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { Habit } from '@/src/types/habit';
+import { habitService } from '@/src/lib/habitService';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadHabits = async () => {
+    try {
+      const fetchedHabits = await habitService.getHabits();
+      setHabits(fetchedHabits);
+    } catch (error) {
+      console.error('Failed to load habits:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadHabits();
+    }, [])
+  );
+
+  const toggleHabitCompletion = async (habitId: string) => {
+    // For now, we'll just handle the UI update
+    // TODO: Implement habit completion tracking in Supabase
+    setHabits(habits.map(habit => {
+      if (habit.id === habitId) {
+        const today = new Date();
+        const isCompleted = habit.completedDates.some((date: Date) => 
+          date.toDateString() === today.toDateString()
+        );
+        
+        return {
+          ...habit,
+          completedDates: isCompleted 
+            ? habit.completedDates.filter((date: Date) => date.toDateString() !== today.toDateString())
+            : [...habit.completedDates, today]
+        };
+      }
+      return habit;
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+      <ThemedText type="title">My Habits</ThemedText>
+      {habits.length === 0 ? (
+        <View style={styles.emptyState}>
+          <ThemedText style={styles.emptyStateText}>
+            Ready to build some great habits?
+          </ThemedText>
+          <Link href="/(tabs)/new" asChild>
+            <Pressable style={styles.addButton}>
+              <ThemedText style={styles.buttonText}>Add Your First Habit</ThemedText>
+            </Pressable>
+          </Link>
+        </View>
+      ) : (
+        <FlatList 
+          data={habits}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <HabitItem 
+              habit={item} 
+              onToggle={() => toggleHabitCompletion(item.id)}
+            />
+          )}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  centered: {
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 100,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  emptyStateText: {
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

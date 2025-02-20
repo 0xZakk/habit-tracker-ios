@@ -1,9 +1,10 @@
 import { View, StyleSheet, Pressable, Animated } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { Habit } from '@/types/habit';
+import { Habit } from '@/src/types/habit';
 import { habitService } from '@/src/lib/habitService';
 import { normalizeToDay } from '@/src/lib/dateUtils';
 import { useState, useRef, useEffect } from 'react';
+import { router } from 'expo-router';
 
 interface HabitItemProps {
   habit: Habit;
@@ -122,6 +123,12 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
             </View>
           ))}
         </View>
+        <Pressable 
+          onPress={() => router.push(`/habits/${habit.id}`)} 
+          style={styles.moreDetailsButton}
+        >
+          <ThemedText type="link">More Details</ThemedText>
+        </Pressable>
       </Animated.View>
     </View>
   );
@@ -273,5 +280,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     flexShrink: 0,
+  },
+  moreDetailsButton: {
+    marginTop: 16,
+    alignSelf: 'flex-start',
   },
 }); 

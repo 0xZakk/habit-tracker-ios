@@ -24,7 +24,7 @@ export default function AuthScreen() {
       });
 
       if (error) throw error;
-      router.replace('/(tabs)');
+      router.replace('/');
     } catch (error: any) {
       let message = 'An error occurred during sign in';
       if (error.message.includes('Invalid login credentials')) {

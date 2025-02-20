@@ -37,7 +37,7 @@ function RootLayoutNav() {
     </Pressable>
   );
 
-  const BackButton = () => (
+  const HomeButton = () => (
     <Pressable
       onPress={() => router.push("/")}
       style={({ pressed }) => ({
@@ -80,6 +80,7 @@ function RootLayoutNav() {
           name="habits/[id]"
           options={({ route }) => ({
             title: `Habit ${(route.params as HabitParams)?.id ?? ""}`,
+            headerLeft: () => <HomeButton />,
           })}
         />
         <Stack.Screen
@@ -87,7 +88,7 @@ function RootLayoutNav() {
           options={{
             title: "New Habit",
             headerRight: undefined,
-            headerLeft: () => <BackButton />,
+            headerLeft: () => <HomeButton />,
           }}
         />
       </Stack>

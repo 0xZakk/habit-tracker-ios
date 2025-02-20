@@ -75,6 +75,50 @@ export const habitService = {
     }));
   },
 
+  async getHabit(id: string): Promise<Habit | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    // Fetch the habit
+    const { data: habit, error: habitError } = await supabase
+      .from('habits')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (habitError) {
+      console.error('Error fetching habit:', habitError);
+      return null;
+    }
+
+    if (!habit) {
+      return null;
+    }
+
+    // Fetch all completions for this habit
+    const { data: completions, error: completionsError } = await supabase
+      .from('habit_completions')
+      .select('*')
+      .eq('habit_id', id)
+      .eq('user_id', user.id)
+      .order('completed_at', { ascending: false });
+
+    if (completionsError) {
+      console.error('Error fetching habit completions:', completionsError);
+      return null;
+    }
+
+    return {
+      id: habit.id,
+      name: habit.name,
+      createdAt: normalizeToDay(new Date(habit.created_at)),
+      completedDates: completions.map(completion => 
+        normalizeToDay(new Date(completion.completed_at))
+      ),
+    };
+  },
+
   async deleteHabit(id: string): Promise<boolean> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;

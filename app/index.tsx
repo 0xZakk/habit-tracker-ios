@@ -20,7 +20,6 @@ export default function Index() {
   const loadHabits = async () => {
     try {
       const fetchedHabits = await habitService.getHabits();
-      console.log("fetchedHabits", fetchedHabits);
       setHabits(fetchedHabits);
     } catch (error) {
       console.error('Failed to load habits:', error);

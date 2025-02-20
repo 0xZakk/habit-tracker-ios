@@ -20,13 +20,9 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
   const isCompletedToday = habit.completedDates.some(
     (date: Date) => normalizeToDay(date).getTime() === normalizeToDay(new Date()).getTime()
   );
-
-  console.log(habit);
   
   const streak = calculateStreak(habit.completedDates);
   const last30DaysStats = calculateLast30DaysStats(habit.completedDates);
-
-//   console.log(last30DaysStats);
 
   const handlePress = () => {
     setIsExpanded(!isExpanded);
@@ -102,7 +98,6 @@ export function HabitItem({ habit, onToggle }: HabitItemProps) {
         <View style={styles.streakVisualization}>
           {last30DaysStats.days.map((day, index) => (
             <View key={day.date.toISOString()} style={styles.dayContainer}>
-                {/* <ThemedText style={{ color: '#000000' }}>{selectedDate?.getTime() === day.date.getTime()}</ThemedText> */}
               {selectedDate?.getTime() === day.date.getTime() && (
                 <View style={styles.tooltip}>
                   <ThemedText style={styles.tooltipText}>
@@ -283,6 +278,6 @@ const styles = StyleSheet.create({
   },
   moreDetailsButton: {
     marginTop: 16,
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
   },
 }); 

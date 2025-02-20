@@ -1,6 +1,6 @@
 ---
 Name: Delete habits
-Status: To Do
+Status: Done
 ---
 
 ## Description

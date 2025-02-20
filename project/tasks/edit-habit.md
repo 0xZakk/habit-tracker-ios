@@ -1,6 +1,6 @@
 ---
 Name: Edit habits
-Status: To Do
+Status: Done
 ---
 
 ## Description

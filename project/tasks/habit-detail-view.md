@@ -1,6 +1,6 @@
 ---
 Name: Create habit detail view
-Status: To Do
+Status: Done
 ---
 
 ## Description

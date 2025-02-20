@@ -6,11 +6,11 @@ VALUES
 
 -- Then, generate completions with some randomization
 WITH RECURSIVE dates AS (
-  SELECT '2024-01-18'::date AS date
+  SELECT '2025-01-18'::date AS date
   UNION ALL
   SELECT date + 1
   FROM dates
-  WHERE date < '2024-02-18'
+  WHERE date < '2025-02-18'
 ),
 random_completions AS (
   SELECT 
@@ -35,4 +35,4 @@ SELECT
   '4f9b2a76-bf75-4d74-89d8-80b5df2d8ad0'::uuid as user_id,
   date + time '10:00:00' as completed_at
 FROM random_completions
-WHERE should_insert = true; 
+WHERE should_insert = true;

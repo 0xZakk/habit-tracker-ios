@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { Habit } from '../types/habit';
+import { normalizeToDay } from './dateUtils';
 
 export const habitService = {
   async createHabit(habit: Omit<Habit, 'id' | 'completedDates'>): Promise<Habit | null> {
@@ -11,7 +12,7 @@ export const habitService = {
       .insert([
         {
           name: habit.name,
-          created_at: new Date().toISOString(),
+          created_at: normalizeToDay(new Date()).toISOString(),
           user_id: user.id,
         },
       ])
@@ -26,7 +27,7 @@ export const habitService = {
     return {
       id: data.id,
       name: data.name,
-      createdAt: new Date(data.created_at),
+      createdAt: normalizeToDay(new Date(data.created_at)),
       completedDates: [],
     };
   },
@@ -46,11 +47,18 @@ export const habitService = {
       return [];
     }
 
-    // Fetch all completions for the user's habits
+    // Calculate date range for last 30 days
+    const today = normalizeToDay(new Date());
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(today.getDate() - 29); // -29 to include today
+
+    // Fetch completions for exactly the last 30 days
     const { data: completions, error: completionsError } = await supabase
       .from('habit_completions')
       .select('*')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .gte('completed_at', thirtyDaysAgo.toISOString())
+      .lte('completed_at', new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString());
 
     if (completionsError) {
       console.error('Error fetching habit completions:', completionsError);
@@ -60,10 +68,10 @@ export const habitService = {
     return habits.map((habit) => ({
       id: habit.id,
       name: habit.name,
-      createdAt: new Date(habit.created_at),
+      createdAt: normalizeToDay(new Date(habit.created_at)),
       completedDates: completions
         .filter(completion => completion.habit_id === habit.id)
-        .map(completion => new Date(completion.completed_at)),
+        .map(completion => normalizeToDay(new Date(completion.completed_at))),
     }));
   },
 
@@ -107,10 +115,8 @@ export const habitService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    const startOfDay = normalizeToDay(date);
+    const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000 - 1);
 
     // Check if habit is already completed for this day
     const { data: existingCompletion, error: fetchError } = await supabase
@@ -146,7 +152,7 @@ export const habitService = {
           {
             habit_id: habitId,
             user_id: user.id,
-            completed_at: date.toISOString(),
+            completed_at: startOfDay.toISOString(),
           },
         ]);
 

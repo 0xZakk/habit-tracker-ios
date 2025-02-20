@@ -7,6 +7,7 @@ import { Link } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Habit } from '@/src/types/habit';
 import { habitService } from '@/src/lib/habitService';
+import { normalizeToDay } from '@/src/lib/dateUtils';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -16,6 +17,7 @@ export default function HomeScreen() {
   const loadHabits = async () => {
     try {
       const fetchedHabits = await habitService.getHabits();
+      console.log("fetchedHabits", fetchedHabits);
       setHabits(fetchedHabits);
     } catch (error) {
       console.error('Failed to load habits:', error);
@@ -31,20 +33,20 @@ export default function HomeScreen() {
   );
 
   const toggleHabitCompletion = async (habitId: string) => {
-    // For now, we'll just handle the UI update
-    // TODO: Implement habit completion tracking in Supabase
     setHabits(habits.map(habit => {
       if (habit.id === habitId) {
-        const today = new Date();
+        const todayNormalized = normalizeToDay(new Date()).getTime();
         const isCompleted = habit.completedDates.some((date: Date) => 
-          date.toDateString() === today.toDateString()
+          normalizeToDay(date).getTime() === todayNormalized
         );
         
         return {
           ...habit,
           completedDates: isCompleted 
-            ? habit.completedDates.filter((date: Date) => date.toDateString() !== today.toDateString())
-            : [...habit.completedDates, today]
+            ? habit.completedDates.filter((date: Date) => 
+                normalizeToDay(date).getTime() !== todayNormalized
+              )
+            : [...habit.completedDates, normalizeToDay(new Date())]
         };
       }
       return habit;

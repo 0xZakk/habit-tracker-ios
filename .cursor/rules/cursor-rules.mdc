@@ -73,3 +73,28 @@ metadata:
   priority: high
   version: 1.0
 </rule>
+
+## Task Management
+
+All tasks should be managed according to these rules:
+
+1. Only one task should be in progress at a time
+2. All task files must be located in `$PROJECT_ROOT/project/tasks/`
+3. Task files must be included in every commit that relates to the task
+4. Task status management:
+   - When starting a task, mark status as "Doing"
+   - When completing a task, mark status as "Done"
+   - All other tasks should have status "To Do"
+5. Task file format:
+   ```md
+   ---
+   Name: Task name
+   Status: [To Do|Doing|Done]
+   ---
+
+   ## Description
+
+   Task description here
+   ```
+
+glob: project/tasks/*.md
